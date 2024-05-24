@@ -3,6 +3,7 @@ package kr.co.supermakers.rms
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
@@ -94,13 +95,66 @@ class BaseWebView : WebView {
 
     }
 
+    class MyWebViewClient : WebViewClient() {
+        //페이지 로딩 시작
+        override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+            super.onPageStarted(view, url, favicon)
+            Log.e(TAG, "onPageStarted URL : $url")
+            if (favicon != null) {
+                // favicon이 null이 아닌 경우에 대한 처리
+            } else {
+                // favicon이 null인 경우에 대한 처리
+            }
+        }
+
+        //오류 처리
+        @Deprecated("Deprecated in Java")
+        override fun onReceivedError(
+            view: WebView,
+            errorCode: Int,
+            description: String,
+            failingUrl: String
+        ) {
+            super.onReceivedError(view, errorCode, description, failingUrl)
+            Log.e(TAG, "onReceivedError : $failingUrl")
+            handleError(errorCode)
+        }
+
+        private fun handleError(errorCode: Int) {
+            when (errorCode) {
+                ERROR_AUTHENTICATION -> Log.e(TAG, "onReceivedError : 서버에서 사용자 인증 실패")
+                ERROR_BAD_URL -> Log.e(TAG, "onReceivedError : 잘못된 URL")
+                ERROR_CONNECT -> Log.e(TAG, "onReceivedError : 서버로 연결 실패")
+                ERROR_FAILED_SSL_HANDSHAKE -> Log.e(TAG, "onReceivedError : SSL handshake 수행 실패")
+                ERROR_FILE -> Log.e(TAG, "onReceivedError : 일반 파일 오류")
+                ERROR_FILE_NOT_FOUND -> Log.e(TAG, "onReceivedError : 파일을 찾을 수 없습니다")
+                ERROR_HOST_LOOKUP -> Log.e(TAG, "onReceivedError : 서버 또는 프록시 호스트 이름 조회 실패")
+                ERROR_IO -> Log.e(TAG, "onReceivedError : 서버에서 읽거나 서버로 쓰기 실패")
+                ERROR_PROXY_AUTHENTICATION -> Log.e(TAG, "onReceivedError : 프록시에서 사용자 인증 실패")
+                ERROR_REDIRECT_LOOP -> Log.e(TAG, "onReceivedError : 너무 많은 리디렉션")
+                ERROR_TIMEOUT -> Log.e(TAG, "onReceivedError : 연결 시간 초과")
+                ERROR_TOO_MANY_REQUESTS -> Log.e(TAG, "onReceivedError : 페이지 로드중 너무 많은 요청 발생")
+                ERROR_UNKNOWN -> Log.e(TAG, "onReceivedError : 일반 오류")
+                ERROR_UNSUPPORTED_AUTH_SCHEME -> Log.e(TAG, "onReceivedError : 지원되지 않는 인증 체계")
+                ERROR_UNSUPPORTED_SCHEME -> Log.e(TAG, "onReceivedError : URI가 지원되지 않는 방식")
+            }
+        }
+
+        //페이지 로딩 완료
+        override fun onPageFinished(view: WebView, url: String) {
+            super.onPageFinished(view, url)
+            Log.e(TAG, "onPageFinished : $url")
+
+            //[1] 앱 최초 기동 유무를 확인 -> MainActivity. stopAnimation() 에서 처리
+            // 웹뷰의 RAM과 영구 저장소 사이에 쿠키 강제 동기화 수행 함.
+            CookieManager.getInstance().flush()
+        }
+    }
+
     class MyWebChromeClient : WebChromeClient() {
 
     }
 
-    class MyWebViewClient : WebViewClient() {
-
-    }
 
     private fun setUserAgent(settings: WebSettings?) {
         if (settings == null || mContext == null) return
