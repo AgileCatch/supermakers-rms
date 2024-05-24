@@ -11,9 +11,11 @@ import android.os.Build
 import android.os.Message
 import android.util.AttributeSet
 import android.util.Log
+import android.view.View
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.JsResult
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -298,6 +300,8 @@ class BaseWebView : WebView {
             myAlert.show()
             return true
         }
+
+
     }
 
 
