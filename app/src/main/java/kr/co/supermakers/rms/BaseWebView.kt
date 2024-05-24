@@ -5,8 +5,14 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.AttributeSet
+import android.util.Log
+import android.webkit.CookieManager
+import android.webkit.JavascriptInterface
+import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.webkit.WebViewClient
+import com.journeyapps.barcodescanner.ScanOptions
 
 class BaseWebView : WebView {
 
@@ -72,19 +78,72 @@ class BaseWebView : WebView {
             cacheMode = WebSettings.LOAD_DEFAULT
 
         }
+
+        // 서드파티 쿠키 허용.
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.setAcceptCookie(true)
+        cookieManager.setAcceptThirdPartyCookies(this, true)
+
+        // App <----> Javascript 통신객체 생성
+//        addJavascriptInterface(AndroidScriptBridge(this), "superkitchen")
+
+        // WebViewClient 설정
+        webViewClient = MyWebViewClient()
+        // WebChromeClient 설정
+        webChromeClient = MyWebChromeClient()
+
     }
+
+    class MyWebChromeClient : WebChromeClient() {
+
+    }
+
+    class MyWebViewClient : WebViewClient() {
+
+    }
+
     private fun setUserAgent(settings: WebSettings?) {
         if (settings == null || mContext == null) return
         try {
-            val pm = mContext!!.packageManager
-            val deviceVersion = pm.getPackageInfo(mContext!!.packageName, 0).versionName
-            val deviceModelName = Build.MODEL
-            //String deviceModelName = android.os.Build.BRAND  + android.os.Build.MODEL;
-
             // UserAgent를 설정한다.
             settings.userAgentString += " [SKApp/Android]"
         } catch (e: PackageManager.NameNotFoundException) {
             e.printStackTrace()
         }
+    }
+
+    private class AndroidScriptBridge(webView: BaseWebView) {
+        //private final Handler handler = new Handler();
+
+        var bPushEnable = false
+        var bAdEnable = false
+
+        init {
+            mWebView = webView
+        }
+
+
+        //바코드 기능
+//        @JavascriptInterface
+//        fun openBarcodeScanner(callMethod: String) {
+//            mBarcodeCallMethod = callMethod
+//
+//            mWebView.post(Runnable {
+//                Log.e(TAG, "openBarcodeScanner('$callMethod')")
+//                (mContext as MainActivity).mBarcodeLauncher.launch(ScanOptions())
+//            })
+//        }
+//
+//        @JavascriptInterface
+//        fun requestFCMToken(callbackMethod: String) {
+//            mTokenCallMethod = callbackMethod
+//
+//            mWebView.post(Runnable {
+//                Log.e(TAG, "requestFCMToken('$callbackMethod')")
+//                (mContext as MainActivity).requestFCMToken(callbackMethod)
+//            })
+//        }
+
+
     }
 }
