@@ -21,11 +21,22 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            applicationIdSuffix = ".prod"
+            versionNameSuffix = "-prod"
+            buildConfigField("String","MAIN_URL","\"https://retail.superkitchen.co.kr\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+        }
+        debug {
+            isMinifyEnabled = false
+//            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-demo"
+            buildConfigField("String","MAIN_URL","\"https://dev-retail.superkitchen.kr\"")
+
         }
     }
     compileOptions {
