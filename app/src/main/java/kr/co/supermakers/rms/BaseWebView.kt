@@ -1,9 +1,12 @@
 package kr.co.supermakers.rms
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
@@ -14,6 +17,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.journeyapps.barcodescanner.ScanOptions
+import java.net.URISyntaxException
 
 class BaseWebView : WebView {
 
@@ -96,15 +100,100 @@ class BaseWebView : WebView {
     }
 
     class MyWebViewClient : WebViewClient() {
+        @Deprecated("Deprecated in Java")
+        override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+            Log.e(TAG, "shouldOverrideUrlLoading : $url")
+            try {
+                when {
+                    // If the URL starts with "about:blank", ignore it
+                    url.startsWith("about:blank") -> {
+                        Log.e(TAG, "about:blank")
+                        return true
+                    }
+                    // Handle telephone links
+                    url.startsWith("tel:") -> {
+                        val intent = Intent(Intent.ACTION_DIAL, Uri.parse(url))
+                        mContext?.startActivity(intent)
+                        return true
+                    }
+                    // Handle mailto links
+                    url.startsWith("mailto:") -> {
+                        val eMail = url.replace("mailto:", "")
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "plain/text"
+                            putExtra(Intent.EXTRA_EMAIL, arrayOf(eMail))
+                        }
+                        mContext?.startActivity(intent)
+                        return true
+                    }
+                    // Handle Kakao links
+                    url.startsWith("intent:kakao") || url.startsWith("kakao") -> {
+                        try {
+                            val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                            val existPackage = intent.getPackage()?.let {
+                                mContext?.packageManager?.getLaunchIntentForPackage(it)
+                            }
+                            if (existPackage != null) {
+                                mContext?.startActivity(intent)
+                            } else {
+                                val marketIntent = Intent(Intent.ACTION_VIEW).apply {
+                                    data = Uri.parse("market://details?id=${intent.getPackage()}")
+                                }
+                                mContext?.startActivity(marketIntent)
+                            }
+                        } catch (e: Exception) {
+                            Log.d(TAG, "Bad URI $url: ${e.message}")
+                            return false
+                        }
+                        return true
+                    }
+                    // Handle other custom schemes
+                    !url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("javascript:") -> {
+                        val intent = try {
+                            Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                        } catch (ex: URISyntaxException) {
+                            Log.e(TAG, "[error] Bad request uri format: [$url] = ${ex.message}")
+                            return false
+                        }
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                            if (mContext?.packageManager?.resolveActivity(intent, 0) == null) {
+                                intent.getPackage()?.let { pkgName ->
+                                    val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://search?q=pname:$pkgName"))
+                                    mContext?.startActivity(marketIntent)
+                                }
+                            } else {
+                                val uri = Uri.parse(intent.dataString)
+                                val resolvedIntent = Intent(Intent.ACTION_VIEW, uri)
+                                mContext?.startActivity(resolvedIntent)
+                            }
+                        } else {
+                            try {
+                                mContext?.startActivity(intent)
+                            } catch (e: ActivityNotFoundException) {
+                                val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://search?q=pname:${intent.getPackage()}"))
+                                mContext?.startActivity(marketIntent)
+                            }
+                        }
+                        return true
+                    }
+                    // Load the URL if it's a regular HTTP/HTTPS link
+                    else -> {
+                        view.loadUrl(url)
+                        return false
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception in shouldOverrideUrlLoading", e)
+                return false
+            }
+            return true
+        }
+
         //페이지 로딩 시작
         override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
             super.onPageStarted(view, url, favicon)
             Log.e(TAG, "onPageStarted URL : $url")
-            if (favicon != null) {
-                // favicon이 null이 아닌 경우에 대한 처리
-            } else {
-                // favicon이 null인 경우에 대한 처리
-            }
+            
         }
 
         //오류 처리
