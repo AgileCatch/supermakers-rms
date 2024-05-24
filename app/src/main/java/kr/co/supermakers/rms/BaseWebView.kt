@@ -8,14 +8,17 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
+import android.os.Message
 import android.util.AttributeSet
 import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
+import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import com.focusone.skscms.util.CustomAlert
 import com.journeyapps.barcodescanner.ScanOptions
 import java.net.URISyntaxException
 
@@ -193,7 +196,7 @@ class BaseWebView : WebView {
         override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
             super.onPageStarted(view, url, favicon)
             Log.e(TAG, "onPageStarted URL : $url")
-            
+
         }
 
         //오류 처리
@@ -241,7 +244,60 @@ class BaseWebView : WebView {
     }
 
     class MyWebChromeClient : WebChromeClient() {
+        override fun onCreateWindow(
+            view: WebView,
+            isDialog: Boolean,
+            isUserGesture: Boolean,
+            resultMsg: Message
+        ): Boolean {
+            val newWebView = WebView(view.context)
+            val settings = newWebView.getSettings()
+            settings.apply {
+                javaScriptEnabled = true
+                javaScriptCanOpenWindowsAutomatically = true
+                setSupportMultipleWindows(true)
+            }
+            val transport = resultMsg.obj as WebViewTransport
+            transport.webView = newWebView
+            resultMsg.sendToTarget()
+            return true
+        }
 
+        override fun onCloseWindow(window: WebView) {
+            super.onCloseWindow(window)
+            window.goBack()
+            window.goBack()
+        }
+
+        //웹뷰 alert 네이티브 팝업처리
+        override fun onJsAlert(
+            view: WebView?,
+            url: String?,
+            message: String?,
+            result: JsResult
+        ): Boolean {
+            val myAlert = CustomAlert(
+                mContext!!, message!!, "확인", { dialog, which -> result.confirm() })
+            myAlert.show()
+            return true
+        }
+
+        override fun onJsConfirm(
+            view: WebView?,
+            url: String?,
+            message: String?,
+            result: JsResult
+        ): Boolean {
+            val myAlert = CustomAlert(
+                mContext!!, message!!, "확인", "취소",
+                { dialog, which ->
+                    result.confirm() // 확인
+                }, { dialog, which ->
+                    result.cancel() // 취소
+                })
+            myAlert.show()
+            return true
+        }
     }
 
 
