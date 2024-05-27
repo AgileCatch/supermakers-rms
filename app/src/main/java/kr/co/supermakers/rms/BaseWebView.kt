@@ -301,7 +301,41 @@ class BaseWebView : WebView {
             return true
         }
 
+        //파일 업로드 관련 이벤트 처리
+        fun openFileChooser(uploadMsg: ValueCallback<Uri?>?) {
+            (mContext as MainActivity).doFileAttach(uploadMsg!!)
+            Log.d(TAG, "openFileChooser")
+        }
 
+        // 4.1
+        @Suppress("unused")
+        fun openFileChooser(uploadMsg: ValueCallback<Uri?>?, acceptType: String?) {
+            openFileChooser(uploadMsg)
+        }
+
+        // 4.4
+        @Suppress("unused")
+        fun openFileChooser(
+            uploadMsg: ValueCallback<Uri?>?,
+            acceptType: String?,
+            capture: String?
+        ) {
+            openFileChooser(uploadMsg)
+        }
+
+        // 5.0 이후, Build Sdk를 5.0 이상을 적용해야함.
+        override fun onShowFileChooser(
+            webView: WebView?, filePathCallback: ValueCallback<Array<Uri>>?,
+            fileChooserParams: FileChooserParams?
+        ): Boolean {
+            (mContext as MainActivity).doFileAttachs(filePathCallback)
+            return true
+        }
+
+        override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+            super.onShowCustomView(view, callback)
+            Log.d(TAG, "onShowCustomView()")
+        }
     }
 
 
@@ -326,17 +360,19 @@ class BaseWebView : WebView {
         }
 
 
-        //바코드 기능
-//        @JavascriptInterface
-//        fun openBarcodeScanner(callMethod: String) {
-//            mBarcodeCallMethod = callMethod
-//
-//            mWebView.post(Runnable {
-//                Log.e(TAG, "openBarcodeScanner('$callMethod')")
-//                (mContext as MainActivity).mBarcodeLauncher.launch(ScanOptions())
-//            })
-//        }
-//
+        //바코드 스캐너
+        @JavascriptInterface
+        fun openBarcodeScanner(callMethod: String) {
+            mBarcodeCallMethod = callMethod
+
+            mWebView.post(Runnable {
+                Log.e(TAG, "openBarcodeScanner('$callMethod')")
+                (mContext as MainActivity).mBarcodeLauncher.launch(ScanOptions())
+            })
+        }
+
+
+        //FCM 토큰 요청
         @JavascriptInterface
         fun requestFCMToken(callbackMethod: String) {
             mTokenCallMethod = callbackMethod
