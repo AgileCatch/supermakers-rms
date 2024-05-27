@@ -95,7 +95,7 @@ class BaseWebView : WebView {
         cookieManager.setAcceptThirdPartyCookies(this, true)
 
         // App <----> Javascript 통신객체 생성
-//        addJavascriptInterface(AndroidScriptBridge(this), "superkitchen")
+        addJavascriptInterface(AndroidScriptBridge(this), "superkitchen")
 
         // WebViewClient 설정
         webViewClient = MyWebViewClient()
@@ -337,15 +337,15 @@ class BaseWebView : WebView {
 //            })
 //        }
 //
-//        @JavascriptInterface
-//        fun requestFCMToken(callbackMethod: String) {
-//            mTokenCallMethod = callbackMethod
-//
-//            mWebView.post(Runnable {
-//                Log.e(TAG, "requestFCMToken('$callbackMethod')")
-//                (mContext as MainActivity).requestFCMToken(callbackMethod)
-//            })
-//        }
+        @JavascriptInterface
+        fun requestFCMToken(callbackMethod: String) {
+            mTokenCallMethod = callbackMethod
+
+            mWebView.post(Runnable {
+                Log.e(TAG, "requestFCMToken('$callbackMethod')")
+                (mContext as MainActivity).requestFCMToken(callbackMethod)
+            })
+        }
 
 
     }

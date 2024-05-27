@@ -82,6 +82,23 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    fun requestFCMToken(callbackMethod: String) {
+        Log.e(TAG, "FCMToken result: $callbackMethod")
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                token?.let {
+                    val jsCallback = "$callbackMethod('$it')"
+                    runOnUiThread {
+                        binding.mainWebView.evaluateJavascript(jsCallback, null)
+                    }
+                }
+            } else {
+                showToast("FCM 토큰을 가져오는 데 실패했습니다.")
+            }
+        }
+    }
+
 
     private fun getBackPressedClass(): BackPressedForFinish {
         return backPressedForFinish
