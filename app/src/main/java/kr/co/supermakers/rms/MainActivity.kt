@@ -81,6 +81,7 @@ class MainActivity : AppCompatActivity() {
             permissionMedia()
         }
     }
+    
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
