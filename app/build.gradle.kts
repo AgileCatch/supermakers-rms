@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     // Add the Google services Gradle plugin
-//    id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
 }
 
 android {
