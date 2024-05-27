@@ -44,6 +44,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            tools:replace="android:screenOrientation"
+            />
         <service
             android:name=".firebase.MyFirebaseMessagingService"
             android:exported="false"
